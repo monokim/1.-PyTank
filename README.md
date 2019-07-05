@@ -1,2 +1,2 @@
-# 1.-PyTank
+# 1.PyTank
 Youtube Project 1. PyTank
