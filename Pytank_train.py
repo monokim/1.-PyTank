@@ -25,7 +25,7 @@ def train_pytank():
     enemy = Object.Tank(1, screen)
 
     trained_count = 0
-    game_speed = 15
+    game_speed = 30
     num_bullet = 100
     bullets = []
     flag_get_train_data = False
@@ -57,9 +57,7 @@ def train_pytank():
         if my_tank.is_fire == False:
             my_tank.fire()
             flag_get_train_data = True
-            enemy_was_at = enemy.position
-            enemy_was_angle = enemy.angle
-            abs_angle = Util.get_angle(my_tank.position, enemy_was)
+            abs_angle = Util.get_angle(enemy.position.copy(), my_tank.position.copy())
             for i in range(num_bullet):
                 b = Object.Bullet(screen, my_tank.position.copy())
                 a1 = (b.angle - abs_angle + 360) % 360
@@ -70,7 +68,7 @@ def train_pytank():
                 else:
                     big = a2
                     small = a1
-                while small > 90 and big < 270:
+                while small > 45 and big < 315:
                     b.set_new_direction()
                     a1 = (b.angle - abs_angle + 360) % 360
                     a2 = (abs_angle - b.angle + 360) % 360
@@ -80,24 +78,25 @@ def train_pytank():
                     else:
                         big = a2
                         small = a1
-
+                print(abs_angle, b.angle, abs_angle - b.angle)
                 bullets.append(b)
-                data = [Util.get_distance(my_tank.position, enemy_was_at), bullets[i].angle, 
-                        enemy_was_angle, Util.get_angle(my_tank.position, enemy_was_at)]
+                data = [Util.get_distance(my_tank.position, enemy.position.copy()), 
+                        bullets[i].angle, 
+                        enemy.angle, 
+                        abs_angle]
                 train_input_data[i] = data
     
     
         my_tank.update_status()
         enemy.update_status()
-        for b in bullets:
-            b.update_status()
+        for i in range(len(bullets)):
+            bullets[i].update_status()
 
         # check Status
         for i in range(len(bullets)):
             if Util.check_collision(enemy, bullets[i]):
                 bullets[i].hit = True
 
-       # input situation data to Neural Network
         if flag_get_train_data and my_tank.is_fire:
             for i in range(len(bullets)):
                 dist = Util.get_distance(bullets[i].position, enemy.position)
@@ -109,7 +108,9 @@ def train_pytank():
         if flag_get_train_data:
             count = 0
             for i in range(len(bullets)):
-                if bullets[i].alive == False and train_result_data[i] != None:
+                if train_result_data[i] != None:
+                    count += 1
+                elif bullets[i].alive == False:
                     abs_angle = Util.get_angle(enemy.position, my_tank.position)
                     p1 = (bullets[i].angle - abs_angle + 360) % 360
                     p2 = (abs_angle - bullets[i].angle + 360) % 360
@@ -122,14 +123,13 @@ def train_pytank():
                     data = [int(bullets[i].hit), left, right]
                     train_result_data[i] = data
                     count += 1
-
             if count == num_bullet:
                 model.save_data(train_input_data, train_result_data)
                 if model.data_count >= 5000:
                     break
                 # init
                 train_input_data = [None] * num_bullet
-                train_result_data = [[0, 0, 0]] * num_bullet
+                train_result_data = [None] * num_bullet
                 bullets.clear()
                 trained_count += 1
                 del enemy

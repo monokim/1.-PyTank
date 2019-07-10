@@ -37,22 +37,22 @@ class Tank:
         pygame.draw.line(self.screen, (0, 0, 0), (self.position[0], self.position[1]), (self.c_x,self.c_y), 10)
     
     def move(self):
-        self.position[0] += math.sin(math.radians(self.angle)) * self.speed
-        self.position[1] += math.cos(math.radians(self.angle)) * self.speed
+        self.position[0] += math.cos(math.radians(self.angle)) * self.speed
+        self.position[1] += math.sin(math.radians(self.angle)) * self.speed
 
     def fire(self):
         if self.is_fire == False:
             self.is_fire = True
 
     def check_status(self):
-        direction = [math.sin(math.radians(self.angle)), math.cos(math.radians(self.angle))]
+        direction = [math.cos(math.radians(self.angle)), math.sin(math.radians(self.angle))]
         if self.position[0] <= 0 or self.position[0] >= screen_width - 50:
             direction[0] *= -1
-            self.angle = (math.degrees(math.atan2(direction[0], direction[1])) + 360) % 360
+            self.angle = (math.degrees(math.atan2(direction[1], direction[0])) + 360) % 360
         
         if self.position[1] <= 0 or self.position[1] >= screen_height - 50:
             direction[1] *= -1
-            self.angle = (math.degrees(math.atan2(direction[0], direction[1])) + 360) % 360
+            self.angle = (math.degrees(math.atan2(direction[1], direction[0])) + 360) % 360
 
     def update_status(self):
         self.check_status()
@@ -81,9 +81,8 @@ class Bullet:
             self.angle = angle
 
     def move(self):
-
-        self.position[0] += math.sin(math.radians(self.angle)) * self.speed
-        self.position[1] += math.cos(math.radians(self.angle)) * self.speed
+        self.position[0] += math.cos(math.radians(self.angle)) * self.speed
+        self.position[1] += math.sin(math.radians(self.angle)) * self.speed
 
     def draw(self):
         pygame.draw.circle(self.screen, (0, 0, 0), [int(self.position[0]), int(self.position[1])], self.size)
