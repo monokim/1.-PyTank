@@ -10,6 +10,7 @@ class Tank:
     bullet = None
     accel = 0
     speed = 10
+    c_len = 50
     def __init__(self, side, screen):
         self.side = side
         self.screen = screen
@@ -21,7 +22,8 @@ class Tank:
             self.color = (255, 0, 0)
             
         self.angle = (math.degrees(math.atan2(random.uniform(-1, 1), random.uniform(-1, 1))) + 360) % 360
-       
+        self.c_x = self.position[0] + math.cos(math.radians(self.angle)) * self.c_len    # cannon_x
+        self.c_y = self.position[1] + math.sin(math.radians(self.angle)) * self.c_len    # cannon_y
     def draw(self):
         pygame.draw.circle(self.screen, self.color, [int(self.position[0]), int(self.position[1])], self.size)
         if self.side == 0:
@@ -29,11 +31,6 @@ class Tank:
 
     def draw_cannon(self):
         # draw cannon
-        len = 50
-        self.c_x = self.position[0] + math.sin(math.radians(self.angle)) * len    # cannon_x
-        self.c_y = self.position[1] + math.cos(math.radians(self.angle)) * len    # cannon_y
-        self.b_x = (self.c_x - (self.position[0] + 25)) / len   # bullet_direction
-        self.b_y = (self.c_y - (self.position[1] + 25)) / len
         pygame.draw.line(self.screen, (0, 0, 0), (self.position[0], self.position[1]), (self.c_x,self.c_y), 10)
     
     def move(self):
@@ -45,6 +42,7 @@ class Tank:
             self.is_fire = True
 
     def check_status(self):
+        self.angle = (self.angle + 360) % 360
         direction = [math.cos(math.radians(self.angle)), math.sin(math.radians(self.angle))]
         if self.position[0] <= 0 or self.position[0] >= screen_width - 50:
             direction[0] *= -1
@@ -53,6 +51,10 @@ class Tank:
         if self.position[1] <= 0 or self.position[1] >= screen_height - 50:
             direction[1] *= -1
             self.angle = (math.degrees(math.atan2(direction[1], direction[0])) + 360) % 360
+
+        self.c_x = self.position[0] + math.cos(math.radians(self.angle)) * self.c_len    # cannon_x
+        self.c_y = self.position[1] + math.sin(math.radians(self.angle)) * self.c_len    # cannon_y
+  
 
     def update_status(self):
         self.check_status()
