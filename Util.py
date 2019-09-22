@@ -10,3 +10,9 @@ def check_collision(p1, p2):
     if get_distance(p1.position, p2.position) <= p1.size + p2.size:
         return True
     return False
+
+def normalize_angle(angle):
+    if angle < 0:
+        angle += 360
+    return angle / 360.0
+    #return math.atan2(math.sin(angle), math.cos(angle))

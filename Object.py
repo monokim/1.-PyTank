@@ -1,6 +1,7 @@
 import random
 import math
 import pygame
+import Util
 screen_width = 1200
 screen_height = 800
 class Tank:
@@ -26,8 +27,7 @@ class Tank:
         self.c_y = self.position[1] + math.sin(math.radians(self.angle)) * self.c_len    # cannon_y
     def draw(self):
         pygame.draw.circle(self.screen, self.color, [int(self.position[0]), int(self.position[1])], self.size)
-        if self.side == 0:
-            self.draw_cannon()
+        self.draw_cannon()
 
     def draw_cannon(self):
         # draw cannon
@@ -60,9 +60,37 @@ class Tank:
         self.check_status()
         self.move()
 
+    def predict_hit(self, b):
+        abs_angle = Util.get_angle(self.position.copy(), b.position.copy())
+        a1 = (b.angle - abs_angle + 360) % 360
+        a2 = (abs_angle - b.angle + 360) % 360
+        if a1 > a2:
+            big = a1
+            small = a2
+        else:
+            big = a2
+            small = a1
+        if small <= 15 or big >= 360 - 15:
+            return 1
+        return 0
+
+    def emergency_avoid(self, b):
+        # + : right, - left
+        angle_diff = (self.angle - b.angle + 360) % 360
+        if angle_diff < 45:
+            return 1
+        elif angle_diff > 135 and angle_diff <= 180:
+                return 0
+        elif angle_diff > 180 and angle_diff <= 225:
+                return 1
+        elif angle_diff > 315:
+            return 0
+        else:
+            return 2
+        
 
 class Bullet:
-    speed = 30
+    speed = 50
     alive = 1
     angle = 0
     size = 5

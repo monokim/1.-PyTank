@@ -1,22 +1,26 @@
 import torch
 import csv
 import torch.utils.data as data
+import numpy as np
 from torch.autograd import Variable
 
 class TwoLayerNet():
-    def __init__(self, D_in = 4, H = 5, D_out = 3):
+    def __init__(self, D_in = 3, H = 10, H2 = 10, D_out = 3):
         self.model = torch.nn.Sequential(
             torch.nn.Linear(D_in, H),
             torch.nn.ReLU(),
-            torch.nn.Linear(H, D_out)
+            torch.nn.Linear(H, H2),
+            torch.nn.Linear(H2, D_out)
             )
         self.loss = torch.nn.MSELoss()
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-2, momentum=0.9)
+        #self.optimizer = torch.optim.RMSprop(self.model.parameters())
+        #self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-2, momentum=0.9)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), 1e-2)
         
         self.data_count = 0
         self.x = []
         self.y = []
-        self.num_epoch = 1000
+        self.num_epoch = 200
 
     def train(self):
         x = torch.Tensor(self.x)
@@ -25,7 +29,6 @@ class TwoLayerNet():
             input = Variable(x, requires_grad=False)
             target = Variable(y, requires_grad=False)
             pred = self.model(input)
-            #print(pred[0], target[0])
             loss = self.loss(pred, target)
             
             self.optimizer.zero_grad()
@@ -40,19 +43,9 @@ class TwoLayerNet():
         print("train complete")
 
     def predict(self, x):
-        #x = self.normalize(x)
         x = torch.Tensor(x)
         y_pred = self.model(x)
         return y_pred.tolist()
-
-    def normalize(self, x):
-        #normalize
-        x[0] = (x[0] - 500.0) / 1400
-        x[1] = (x[1] - 180.0) / 360
-        x[2] = (x[2] - 180.0) / 360
-        x[3] = (x[3] - 180.0) / 360
-        return x
-
 
     def save_data(self, x, y):
         for data in x:
@@ -61,7 +54,7 @@ class TwoLayerNet():
             self.y.append(data)
         self.data_count += 1
         print(self.data_count)
-        if self.data_count == 1000:
+        if self.data_count == 10000:
             with open('train_input.txt', 'w') as f:
                 for item in self.x:
                     f.write("%s\n" % item)
@@ -80,12 +73,9 @@ class TwoLayerNet():
             csv_reader = csv.reader(f, delimiter=',')
             for data in csv_reader:
                 #normalize
-                data[0] = int(data[0][1:])
-                data[1] = int(data[1][1:])
-                data[2] = int(data[2][1:])
-                data[3] = float(data[3][1:-1])
-                #data[3] = (float(data[3][1:-1]) - 180.0) / 360
-                #data = self.normalize(data)
+                data[0] = float(data[0][1:])
+                data[1] = float(data[1][1:])
+                data[2] = float(data[2][1:-1])
                 self.x.append(data)
                 
         with open(out_path, 'r') as f:
